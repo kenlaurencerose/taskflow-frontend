@@ -32,5 +32,6 @@ function loadThings() {
 
 onMounted(() => {
   loadThings()
+
 })
 </script>
