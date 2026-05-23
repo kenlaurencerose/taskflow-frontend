@@ -16,17 +16,15 @@ import { ref, onMounted } from 'vue'
 const tasks = ref<any[]>([])
 
 function loadThings() {
-  const baseURL = import.meta.env.VITE_BACKEND_BASE_URL
-  const endpoint = baseURL
-
-  const requestOptions = {
+  const endpoint = import.meta.env.VITE_BACKEND_BASE_URL
+  const requestOptions: RequestInit = {
     method: 'GET',
     redirect: 'follow'
   }
 
   fetch(endpoint, requestOptions)
     .then(response => response.json())
-    .then(result => result.forEach(task => {
+    .then((result: any[]) => result.forEach((task: any) => {
       tasks.value.push(task)
     }))
     .catch(error => console.log('error', error))
