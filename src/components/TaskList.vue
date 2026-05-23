@@ -11,17 +11,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const tasks = ref([
-  {
-    id: 1, title: "Projekt anlegen", status: "Open", priority: "High"
-  },
-  {
-    id: 2, title: "Vue bauen", status: "In Progress", priority: "Medium"
-  },
-  {
-    id: 3, title: "Repo pushen", status: "Done", priority: "High"
+const tasks = ref<any[]>([])
+
+function loadThings() {
+  const baseURL = import.meta.env.VITE_BACKEND_BASE_URL
+  const endpoint = baseURL
+
+  const requestOptions = {
+    method: 'GET',
+    redirect: 'follow'
   }
-])
+
+  fetch(endpoint, requestOptions)
+    .then(response => response.json())
+    .then(result => result.forEach(task => {
+      tasks.value.push(task)
+    }))
+    .catch(error => console.log('error', error))
+}
+
+onMounted(() => {
+  loadThings()
+})
 </script>
