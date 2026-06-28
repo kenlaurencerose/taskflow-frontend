@@ -2,7 +2,7 @@
   <div class="app-background">
     <div class="task-card">
       <header class="app-header">
-        <h1>TaskFlow </h1>
+        <h1>TaskFlow</h1>
         <p class="subtitle">Organisiere deine Aufgaben effizient</p>
       </header>
 
@@ -37,7 +37,7 @@
                 <span class="badge priority" :class="task.priority.toLowerCase()">{{ task.priority }}</span>
               </div>
             </div>
-            <button @click="deleteTask(task.id)" class="delete-btn" title="Task löschen">🗑</button>
+            <button @click="deleteTask(task.id)" class="delete-btn" title="Task löschen">🗑️</button>
           </li>
         </ul>
 
@@ -80,7 +80,18 @@ function createTask() {
 }
 
 function deleteTask(id: number) {
-  console.log('Lösche Task:', id)
+  const requestOptions: RequestInit = {
+    method: 'DELETE',
+    redirect: 'follow'
+  }
+
+  fetch(`${baseUrl}tasks/${id}`, requestOptions)
+    .then(response => {
+      if (response.ok) {
+        loadTasks()
+      }
+    })
+    .catch(error => console.log('error', error))
 }
 
 const filteredTasks = computed(() => {
