@@ -6,6 +6,12 @@
         <p class="subtitle">Organisiere deine Aufgaben effizient</p>
       </header>
 
+      <div class="stats-section">
+        <div class="stat-box">Gesamt: <span>{{ totalTasks }}</span></div>
+        <div class="stat-box">Offen: <span>{{ openTasks }}</span></div>
+        <div class="stat-box">Erledigt: <span>{{ completedTasks }}</span></div>
+      </div>
+
       <div class="search-bar">
         <span class="search-icon">🔍</span>
         <input
@@ -27,7 +33,17 @@
       </form>
 
       <div class="list-section">
-        <h3>📋 Deine Aufgaben</h3>
+        <div class="list-header">
+          <h3>📋 Deine Aufgaben</h3>
+          <button
+            v-if="tasks.length > 0"
+            @click="clearAllTasks"
+            class="clear-all-btn"
+          >
+            Alle löschen
+          </button>
+        </div>
+
         <ul class="task-list" v-if="filteredTasks.length > 0">
           <li v-for="task in filteredTasks" :key="task.id" class="task-item" :class="{ 'is-completed': task.status === 'Erledigt' }">
             <div class="task-left">
@@ -103,21 +119,36 @@ function deleteTask(id: number) {
 
 function toggleTaskStatus(task: any) {
   const nextStatus = task.status === 'Erledigt' ? 'Offen' : 'Erledigt'
-
   const requestOptions: RequestInit = {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: nextStatus // Schickt den puren String an den Controller
+    body: nextStatus
   }
-
   fetch(`${baseUrl}tasks/${task.id}/status`, requestOptions)
     .then(response => {
       if (response.ok) {
-        loadTasks() // Liste aktualisieren
+        loadTasks()
       }
     })
     .catch(error => console.log('error', error))
 }
+
+function clearAllTasks() {
+  if (confirm('Möchtest du wirklich alle Aufgaben unwiderruflich löschen?')) {
+    const requestOptions: RequestInit = { method: 'DELETE' }
+    fetch(`${baseUrl}tasks`, requestOptions)
+      .then(response => {
+        if (response.ok) {
+          loadTasks()
+        }
+      })
+      .catch(error => console.log('error', error))
+  }
+}
+
+const totalTasks = computed(() => tasks.value.length)
+const completedTasks = computed(() => tasks.value.filter(t => t.status === 'Erledigt').length)
+const openTasks = computed(() => totalTasks.value - completedTasks.value)
 
 const filteredTasks = computed(() => {
   return tasks.value.filter(task => task.title.toLowerCase().includes(searchQuery.value.toLowerCase()))
@@ -127,7 +158,6 @@ onMounted(() => { loadTasks() })
 </script>
 
 <style scoped>
-/* Modernes & Clean Layout */
 .app-background {
   min-height: 100vh;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -150,9 +180,17 @@ onMounted(() => { loadTasks() })
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
 }
 
-.app-header { text-align: center; margin-bottom: 25px; }
+.app-header { text-align: center; margin-bottom: 20px; }
 .app-header h1 { margin: 0; font-size: 2rem; color: #38bdf8; font-weight: 700; }
 .subtitle { margin: 5px 0 0; color: #94a3b8; font-size: 0.9rem; }
+
+/* Statistik Leiste */
+.stats-section {
+  display: flex; justify-content: space-around; background: #0f172a;
+  padding: 12px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #334155;
+}
+.stat-box { font-size: 0.85rem; color: #94a3b8; }
+.stat-box span { display: block; font-size: 1.2rem; font-weight: bold; color: #38bdf8; text-align: center; margin-top: 2px; }
 
 /* Suchleiste */
 .search-bar { position: relative; margin-bottom: 25px; }
@@ -160,7 +198,7 @@ onMounted(() => { loadTasks() })
 .search-bar input {
   width: 100%; padding: 12px 12px 12px 40px; border-radius: 8px;
   border: 1px solid #334155; background: #0f172a; color: white;
-  box-sizing: border-box; font-size: 0.95rem; transition: border-color 0.2s;
+  box-sizing: border-box; font-size: 0.95rem;
 }
 .search-bar input:focus { border-color: #38bdf8; outline: none; }
 
@@ -177,37 +215,35 @@ onMounted(() => { loadTasks() })
 .submit-btn {
   width: 100%; padding: 12px; border: none; border-radius: 6px;
   background: #0284c7; color: white; font-weight: 600; cursor: pointer;
-  transition: background 0.2s; font-size: 0.95rem;
+  font-size: 0.95rem;
 }
 .submit-btn:hover { background: #0369a1; }
 
-/* Task-Liste */
-.list-section h3 { font-size: 1.1rem; margin-bottom: 15px; color: #94a3b8; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+/* Task-Liste Header & Button */
+.list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+.list-header h3 { font-size: 1.1rem; margin: 0; color: #94a3b8; }
+.clear-all-btn {
+  background: transparent; border: 1px solid #ef4444; color: #ef4444;
+  padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.clear-all-btn:hover { background: #ef4444; color: white; }
+
 .task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-.task-item {
-  display: flex; justify-content: space-between; align-items: center;
-  background: #0f172a; border: 1px solid #334155; padding: 14px; border-radius: 8px;
-  transition: opacity 0.2s;
-}
+.task-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; border: 1px solid #334155; padding: 14px; border-radius: 8px; }
 .task-left { display: flex; align-items: center; gap: 14px; }
-.status-checkbox {
-  width: 18px; height: 18px; cursor: pointer; accent-color: #38bdf8;
-}
-.task-title { font-weight: 600; color: #f1f5f9; display: block; margin-bottom: 4px; transition: color 0.2s; }
+.status-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #38bdf8; }
+.task-title { font-weight: 600; color: #f1f5f9; display: block; margin-bottom: 4px; }
 .task-badges { display: flex; gap: 8px; }
 .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
 .badge.status { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
 .badge.priority { background: #16a34a; color: white; }
 .badge.priority.hoch { background: #dc2626; }
 
-/* Styling für erledigte Tasks */
 .task-item.is-completed { opacity: 0.5; }
 .task-item.is-completed .task-title { text-decoration: line-through; color: #64748b; }
 
-.delete-btn {
-  background: transparent; border: none; cursor: pointer; font-size: 1.2rem;
-  padding: 5px; border-radius: 6px; transition: background 0.2s;
-}
+.delete-btn { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; border-radius: 6px; }
 .delete-btn:hover { background: #27272a; }
 .empty-state { text-align: center; color: #64748b; padding: 20px 0; }
 </style>
