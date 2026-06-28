@@ -2,12 +2,12 @@
   <div class="app-background">
     <div class="task-card">
       <header class="app-header">
-        <h1>TaskFlow 🚀</h1>
+        <h1>TaskFlow </h1>
         <p class="subtitle">Organisiere deine Aufgaben effizient</p>
       </header>
 
       <div class="search-bar">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon"></span>
         <input
           v-model="searchQuery"
           placeholder="Tasks nach Titel durchsuchen..."
@@ -15,7 +15,7 @@
       </div>
 
       <form @submit.prevent="createTask" class="task-form">
-        <h3>✨ Neuen Task hinzufügen</h3>
+        <h3>Neuen Task hinzufügen</h3>
         <div class="input-group">
           <input v-model="newTask.title" placeholder="Was steht an?" required />
         </div>
@@ -27,7 +27,7 @@
       </form>
 
       <div class="list-section">
-        <h3>📋 Deine Aufgaben</h3>
+        <h3>Deine Aufgaben</h3>
         <ul class="task-list" v-if="filteredTasks.length > 0">
           <li v-for="task in filteredTasks" :key="task.id" class="task-item">
             <div class="task-details">
@@ -37,7 +37,7 @@
                 <span class="badge priority" :class="task.priority.toLowerCase()">{{ task.priority }}</span>
               </div>
             </div>
-            <button @click="deleteTask(task.id)" class="delete-btn" title="Task löschen">🗑️</button>
+            <button @click="deleteTask(task.id)" class="delete-btn" title="Task löschen">🗑</button>
           </li>
         </ul>
 
