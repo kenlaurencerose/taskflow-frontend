@@ -7,7 +7,7 @@
       </header>
 
       <div class="search-bar">
-        <span class="search-icon"></span>
+        <span class="search-icon">🔍</span>
         <input
           v-model="searchQuery"
           placeholder="Tasks nach Titel durchsuchen..."
@@ -15,7 +15,7 @@
       </div>
 
       <form @submit.prevent="createTask" class="task-form">
-        <h3>Neuen Task hinzufügen</h3>
+        <h3>✨ Neuen Task hinzufügen</h3>
         <div class="input-group">
           <input v-model="newTask.title" placeholder="Was steht an?" required />
         </div>
@@ -27,14 +27,22 @@
       </form>
 
       <div class="list-section">
-        <h3>Deine Aufgaben</h3>
+        <h3>📋 Deine Aufgaben</h3>
         <ul class="task-list" v-if="filteredTasks.length > 0">
-          <li v-for="task in filteredTasks" :key="task.id" class="task-item">
-            <div class="task-details">
-              <span class="task-title">{{ task.title }}</span>
-              <div class="task-badges">
-                <span class="badge status">{{ task.status }}</span>
-                <span class="badge priority" :class="task.priority.toLowerCase()">{{ task.priority }}</span>
+          <li v-for="task in filteredTasks" :key="task.id" class="task-item" :class="{ 'is-completed': task.status === 'Erledigt' }">
+            <div class="task-left">
+              <input
+                type="checkbox"
+                :checked="task.status === 'Erledigt'"
+                @change="toggleTaskStatus(task)"
+                class="status-checkbox"
+              />
+              <div class="task-details">
+                <span class="task-title">{{ task.title }}</span>
+                <div class="task-badges">
+                  <span class="badge status">{{ task.status }}</span>
+                  <span class="badge priority" :class="task.priority.toLowerCase()">{{ task.priority }}</span>
+                </div>
               </div>
             </div>
             <button @click="deleteTask(task.id)" class="delete-btn" title="Task löschen">🗑️</button>
@@ -84,11 +92,28 @@ function deleteTask(id: number) {
     method: 'DELETE',
     redirect: 'follow'
   }
-
   fetch(`${baseUrl}tasks/${id}`, requestOptions)
     .then(response => {
       if (response.ok) {
         loadTasks()
+      }
+    })
+    .catch(error => console.log('error', error))
+}
+
+function toggleTaskStatus(task: any) {
+  const nextStatus = task.status === 'Erledigt' ? 'Offen' : 'Erledigt'
+
+  const requestOptions: RequestInit = {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: nextStatus // Schickt den puren String an den Controller
+  }
+
+  fetch(`${baseUrl}tasks/${task.id}/status`, requestOptions)
+    .then(response => {
+      if (response.ok) {
+        loadTasks() // Liste aktualisieren
       }
     })
     .catch(error => console.log('error', error))
@@ -162,13 +187,22 @@ onMounted(() => { loadTasks() })
 .task-item {
   display: flex; justify-content: space-between; align-items: center;
   background: #0f172a; border: 1px solid #334155; padding: 14px; border-radius: 8px;
+  transition: opacity 0.2s;
 }
-.task-title { font-weight: 600; color: #f1f5f9; display: block; margin-bottom: 4px; }
+.task-left { display: flex; align-items: center; gap: 14px; }
+.status-checkbox {
+  width: 18px; height: 18px; cursor: pointer; accent-color: #38bdf8;
+}
+.task-title { font-weight: 600; color: #f1f5f9; display: block; margin-bottom: 4px; transition: color 0.2s; }
 .task-badges { display: flex; gap: 8px; }
 .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
 .badge.status { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
 .badge.priority { background: #16a34a; color: white; }
 .badge.priority.hoch { background: #dc2626; }
+
+/* Styling für erledigte Tasks */
+.task-item.is-completed { opacity: 0.5; }
+.task-item.is-completed .task-title { text-decoration: line-through; color: #64748b; }
 
 .delete-btn {
   background: transparent; border: none; cursor: pointer; font-size: 1.2rem;
